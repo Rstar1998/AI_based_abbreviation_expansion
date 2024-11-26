@@ -11,3 +11,5 @@
 pyvenv.cfg
 .venv
 pip-selfcheck.json
+fine_tuned_abbreviation_model
+
