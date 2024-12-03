@@ -3,8 +3,7 @@ from torch.utils.data import DataLoader, Dataset
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-import json
-
+import pandas as pd
 
 # Dataset class for fine-tuning
 class AbbreviationDataset(Dataset):
@@ -27,7 +26,7 @@ class AbbreviationDataset(Dataset):
     
 
 # Function to fine-tune the model
-def fine_tune_model(sentences, abbreviations, expansions, model_name='bert-base-uncased', epochs=3, batch_size=16, lr=5e-5):
+def fine_tune_model(sentences, abbreviations, expansions, model_name='bert-base-uncased', epochs=10, batch_size=4, lr=1e-5):
     """
     Fine-tune the BERT model for abbreviation expansion.
 
@@ -81,6 +80,7 @@ def fine_tune_model(sentences, abbreviations, expansions, model_name='bert-base-
 
     return model
 
+
 def predict_with_fine_tuned_model(sentence: str, abbreviation: str, model_path: str = "fine_tuned_abbreviation_model"):
     """
     Use the fine-tuned model and tokenizer to predict abbreviation expansion.
@@ -117,23 +117,21 @@ def predict_with_fine_tuned_model(sentence: str, abbreviation: str, model_path: 
         return predicted_token.strip()
     except Exception as e:
         return f"Error during prediction: {str(e)}"
-
-
+    
 
 if __name__ == "__main__":
-
-    # Load the dataset
-    with open('abbreviation_dataset.json', 'r') as file:
-        dataset = json.load(file)
-
+    # Load the CSV dataset
+    csv_path = "MESH_data.csv"
+    df = pd.read_csv(csv_path)
+    
     # Prepare sentences, abbreviations, and expansions
-    sentences = [item['sentence'] for item in dataset]
-    abbreviations = [item['abbreviation'] for item in dataset]
-    expansions = [item['expansion'] for item in dataset]
+    sentences = [f"The {row['Qualifier Name']} is crucial." for _, row in df.iterrows()]
+    abbreviations = df["Qualifier Abbreviation"].tolist()
+    expansions = df["Qualifier Name"].tolist()
 
-    print("Sentences:", sentences)
-    print("Abbreviations:", abbreviations)
-    print("Expansions:", expansions)
+    # print("Sentences:", sentences)
+    # print("Abbreviations:", abbreviations)
+    # print("Expansions:", expansions)
 
     model = 'bert-base-uncased'
 
@@ -145,16 +143,8 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(model)
     tokenizer.save_pretrained("fine_tuned_abbreviation_model")
 
-
-
-
-    # # Example predictions
-    # test_sentence = "The VIP section was reserved for special guests."
-    # test_abbreviation = "VIP"
-    # predicted_expansion = predict_with_fine_tuned_model(test_sentence, test_abbreviation)
-    # print(f"Predicted Expansion for '{test_abbreviation}': {predicted_expansion}")
-
-    # test_sentence_2 = "The WHO released new guidelines on pandemic control."
-    # test_abbreviation_2 = "WHO"
-    # predicted_expansion_2 = predict_with_fine_tuned_model(test_sentence_2, test_abbreviation_2)
-    # print(f"Predicted Expansion for '{test_abbreviation_2}': {predicted_expansion_2}")
+    # Example prediction
+    test_sentence = "The AE of the new drug are still under investigation."
+    test_abbreviation = "AE"
+    predicted_expansion = predict_with_fine_tuned_model(test_sentence, test_abbreviation)
+    print(f"Predicted Expansion for '{test_abbreviation}': {predicted_expansion}")
