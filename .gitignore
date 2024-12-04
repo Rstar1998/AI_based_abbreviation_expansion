@@ -2,6 +2,11 @@
 fine_tuned_abbreviation_model
 desc2024.xml
 MESH_data.csv
-
+archive.zip
+archive
+logs
+mlruns
+results
+trained_model
 
 
